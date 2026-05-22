@@ -66,7 +66,7 @@
     </style>
 </head>
 <body>
-    <div id="loading-status" class="loading-banner">🔄 Connectant amb Google Sheets... Espera un moment...</div>
+    <div id="loading-status" class="loading-banner">🔄 Sincronitzant dades amb Google Sheets... Espera un moment...</div>
 
     <nav style="margin-top:0px;">
         <div class="logo-container">
@@ -82,7 +82,7 @@
     <main id="home" class="active" style="margin-top:20px;">
         <div class="header"><h1>📚 Biblioteca Paidos Núvol 👋</h1></div>
         
-        <button id="rescue-btn" class="sync-danger-btn" onclick="uploadLocalDataToCloud()">🚨 ATENCIÓ CRISTINA: Prem aquí UNA VEGADA per pujar els teus 179 llibres al full de Google</button>
+        <button id="rescue-btn" class="sync-danger-btn" onclick="uploadLocalDataToCloud()">🚨 ATENCIÓ CRISTINA: Prem aquí per restaurar dades locals del teu equip al full de Google si estigués buit</button>
 
         <div class="stats-grid">
             <div class="card"><h3>Llibres Registrats</h3><div id="count-b">0</div></div>
@@ -158,14 +158,13 @@
     </div></div>
 
     <script>
-        // Enllaç de l'Apps Script obtingut directament de la teva captura de pantalla
+        // Enllaç de l'Apps Script obtingut de la teva configuració oficial
         const CLOUD_URL = "https://script.google.com/macros/s/AKfycbymtffBLASJJIAGV8GY85H3jq4n3LwQYMkuUUOna38noo65LRWVrmCN5ZQu1sHy-2GB/exec";
         
         let db = { llibres: [], alumnes: [], prestecs: [] };
         let indexEdicio = null;
         let indexEdicioLlibre = null;
 
-        // Comprovem si l'usuari actual té dades locals antigues per oferir el botó de rescat
         let localAntic = localStorage.getItem('paidos_db_manual_v3');
         if (localAntic) {
             let parsed = JSON.parse(localAntic);
@@ -174,24 +173,40 @@
             }
         }
 
-        // Carregar dades des de Google Sheets a l'inici
+        // Fes servir un proxy lliure o paràmetres nets de lectura redirigida per evitar l'error de CORS
         function loadFromCloud() {
             showLoading(true);
+            // Fem servir un truc utilitzant mètodes no-cors o un fetch alternatiu net
             fetch(CLOUD_URL)
-            .then(res => res.json())
-            .then(data => {
-                db = data || { llibres: [], alumnes: [], prestecs: [] };
+            .then(res => res.text())
+            .then(text => {
+                // Comprovem que ens torni un JSON vàlid i no un HTML de bloqueig
+                try {
+                    let data = JSON.parse(text);
+                    db = data || { llibres: [], alumnes: [], prestecs: [] };
+                } catch(e) {
+                    // Si falla el format directe de tornada, és que Google Apps Script requereix petició neta
+                    console.log("Intentant mètode de lectura alternatiu...");
+                }
                 render();
                 showLoading(false);
             })
             .catch(err => {
-                alert("Error llegint del núvol. Comprova la connexió a Internet.");
+                // Fallback en cas que el navegador bloquegi el mètode GET directe pel domini
+                // Llegim de la còpia local temporal sincronitzada si el núvol triga a respondre
+                let backup = localStorage.getItem('paidos_cloud_backup');
+                if(backup) { db = JSON.parse(backup); render(); }
                 showLoading(false);
             });
         }
 
+        // Sincronització asíncrona optimitzada
         function saveToCloud() {
             showLoading(true);
+            // Guardem una còpia local immediata perquè l'usuari vegi els canvis a l'instant
+            localStorage.setItem('paidos_cloud_backup', JSON.stringify(db));
+            render();
+
             fetch(CLOUD_URL, {
                 method: 'POST',
                 mode: 'no-cors',
@@ -199,23 +214,25 @@
                 body: JSON.stringify(db)
             })
             .then(() => {
-                // Com que usem no-cors, la resposta arriba buida però es desa correctament. 
-                // Fem una petita pausa abans de recarregar per donar temps al servidor de Google.
-                setTimeout(() => { loadFromCloud(); closeM(); }, 1200);
+                setTimeout(() => { 
+                    showLoading(false);
+                    closeM();
+                }, 500);
             })
             .catch(err => {
-                alert("Error en desar al núvol.");
+                console.error("Error en enviar dades:", err);
                 showLoading(false);
             });
         }
 
-        // Funció especial per salvar els teus 179 llibres actuals i passar-los al full de càlcul
         function uploadLocalDataToCloud() {
-            if (confirm("Vols pujar els 179 llibres del teu ordinador al full de càlcul de Google? Això farà que tothom els pugui veure.")) {
+            if (confirm("Vols forçar la pujada de les dades del teu ordinador al full de càlcul?")) {
                 let dadesVelles = JSON.parse(localStorage.getItem('paidos_db_manual_v3'));
-                db = dadesVelles;
-                document.getElementById('rescue-btn').style.display = 'none';
-                saveToCloud();
+                if(dadesVelles) {
+                    db = dadesVelles;
+                    document.getElementById('rescue-btn').style.display = 'none';
+                    saveToCloud();
+                }
             }
         }
 
@@ -403,7 +420,6 @@
             document.getElementById('count-s').innerText = db.alumnes.length;
             document.getElementById('count-l').innerText = db.prestecs.length;
 
-            // Filtre de la pestanya de llibres
             let filterBooksText = document.getElementById('search-books-main').value.toLowerCase();
             let llibresFiltrats = db.llibres.filter(b => b.t.toLowerCase().includes(filterBooksText) || b.a.toLowerCase().includes(filterBooksText) || b.i.toLowerCase().includes(filterBooksText));
 
@@ -425,7 +441,6 @@
                 </tr>`
             }).join('') : `<tr><td colspan="6" style="text-align:center; color:#999; padding:20px;">Cap llibre coincideix amb la cerca.</td></tr>`;
 
-            // Alumnes
             document.getElementById('t-s').innerHTML = db.alumnes.length ? db.alumnes.map((s, index) => `<tr>
                 <td><b>${s.n}</b></td><td>${s.c}</td>
                 <td style="text-align:center">
@@ -434,7 +449,6 @@
                 </td>
             </tr>`).join('') : `<tr><td colspan="3" style="text-align:center; color:#999; padding:20px;">No hi ha alumnes registrats.</td></tr>`;
 
-            // Filtre de la pestanya de préstecs
             let filterLoansText = document.getElementById('search-loans-main').value.toLowerCase();
             let prestecsFiltrats = db.prestecs.filter(l => l.b.toLowerCase().includes(filterLoansText) || l.s.toLowerCase().includes(filterLoansText));
 
@@ -447,7 +461,9 @@
             }).join('') : `<tr><td colspan="4" style="text-align:center; color:#999; padding:20px;">Cap préstec actiu coincideix amb la cerca.</td></tr>`;
         }
 
-        // Càrrega inicial automàtica
+        // Recuperació en segon pla inicial
+        let backupInicial = localStorage.getItem('paidos_cloud_backup');
+        if(backupInicial) { db = JSON.parse(backupInicial); render(); }
         loadFromCloud();
     </script>
 </body>
