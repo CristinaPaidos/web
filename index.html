@@ -131,8 +131,8 @@
     </div></div>
 
     <script>
-        // Connexió totalment reparada i directa per evitar el límit de caràcters de Google
-        const SAVE_URL = "https://script.google.com/macros/s/AKfycbzuAYCzdQVGv_CNHR_Cunvb2-1r0xeeVXqsiEtwWjq7279f915YBGy6y1cI6Q1MKGKR/exec";
+        // Enllaç actualitzat correctament al nou exec de dades completes
+        const SAVE_URL = "https://script.google.com/macros/s/AKfycbwNAEUE5Mhlh9yGO06sCSN0_wCAcJcA9m3KBExvn0n3WIAeIDzj2kCvyJlOlUyk75ja/exec";
         
         let db = { llibres: [], alumnes: [], prestecs: [] };
 
@@ -141,7 +141,6 @@
 
         function loadFromCloud() {
             showLoading(true);
-            // Cridem directament l'enllaç de l'Apps Script sense el CSV tallat
             fetch(SAVE_URL + "?cachebust=" + new Date().getTime())
             .then(res => res.json())
             .then(data => {
@@ -153,7 +152,7 @@
                 showLoading(false);
             })
             .catch(err => {
-                console.log("Error carregant xarxa, usant memòria local de seguretat.");
+                console.log("Error carregant dades de la xarxa.");
                 showLoading(false);
             });
         }
