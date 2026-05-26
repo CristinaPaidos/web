@@ -47,7 +47,7 @@
     </style>
 </head>
 <body>
-    <div id="loading-status" class="loading-banner">🔄 Sincronitzant els 393 llibres de la base de dades... Espera un moment...</div>
+    <div id="loading-status" class="loading-banner">🔄 Carregant dades en mode segur i ràpid... Espera...</div>
 
     <nav style="margin-top:0px;">
         <div class="logo-container">
@@ -102,21 +102,21 @@
     </main>
 
     <div id="m-b" class="modal"><div class="modal-content">
-        <h3 id="modal-b-title">Afegir Nou Llibre</h3>
+        <h3>Afegir Nou Llibre</h3>
         <input id="title" placeholder="Títol del llibre (Obligatori)">
         <input id="author" placeholder="Autor/a">
         <input id="isbn" placeholder="Codi ISBN">
         <input id="cover" placeholder="URL de la imatge">
         <input id="copies" type="number" value="1" min="1">
-        <button class="btn btn-green" id="btn-save-b" onclick="addB()">Desar Llibre</button>
+        <button class="btn btn-green" onclick="addB()">Desar Llibre</button>
         <button onclick="closeM()" style="width:100%; margin-top:15px; background:none; border:none; color:#aaa">Tancar</button>
     </div></div>
 
     <div id="m-s" class="modal"><div class="modal-content">
-        <h3 id="modal-s-title">Registrar Alumne/a</h3>
+        <h3>Registrar Alumne/a</h3>
         <input id="s-name" placeholder="Nom i cognoms">
         <input id="s-class" placeholder="Curs">
-        <button class="btn btn-green" id="btn-save-s" onclick="addS()">Desar Alumne</button>
+        <button class="btn btn-green" onclick="addS()">Desar Alumne</button>
         <button onclick="closeM()" style="width:100%; margin-top:15px; background:none; border:none; color:#aaa">Tancar</button>
     </div></div>
 
@@ -131,21 +131,27 @@
     </div></div>
 
     <script>
-        const CLOUD_URL = "https://script.google.com/macros/s/AKfycbymtffBLASJJIAGV8GY85H3jq4n3LwQYMkuUUOna38noo65LRWVrmCN5ZQu1sHy-2GB/exec";
+        // Connexió alternativa directa a les cel·les per evitar el límit de memòria de Google Apps Script
+        const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/1EMby2eb2UViewL3-TV7EjEgLMsXaMUUbjulFCKh1-_WI/pub?gid=0&output=csv";
+        const SAVE_URL = "https://script.google.com/macros/s/AKfycbymtffBLASJJIAGV8GY85H3jq4n3LwQYMkuUUOna38noo65LRWVrmCN5ZQu1sHy-2GB/exec";
+        
         let db = { llibres: [], alumnes: [], prestecs: [] };
-        let indexEdicio = null;
-        let indexEdicioLlibre = null;
 
-        // Recuperació instantània del backup local de seguretat
         let backup = localStorage.getItem('paidos_cloud_backup');
-        if(backup) { db = JSON.parse(backup); render(); }
+        if(backup) { try { db = JSON.parse(backup); render(); } catch(e){} }
 
         function loadFromCloud() {
             showLoading(true);
-            // Afegim un mètode de neteja de memòria cau i forçat de resposta ràpida de Google
-            fetch(CLOUD_URL + "?cachebust=" + new Date().getTime())
-            .then(res => res.json())
-            .then(data => {
+            // Llegim directament el fitxer publicat a la web (sense passar per l'embut d'Apps Script)
+            fetch(SHEET_CSV_URL + "&cachebust=" + new Date().getTime())
+            .then(res => res.text())
+            .then(csvText => {
+                // El contingut real és a la primera cel·la, netegem cometes de format CSV si cal
+                let cleanJson = csvText.trim();
+                if(cleanJson.startsWith('"') && cleanJson.endsWith('"')) {
+                    cleanJson = cleanJson.slice(1, -1).replace(/""/g, '"');
+                }
+                let data = JSON.parse(cleanJson);
                 if (data && (data.llibres || data.alumnes)) {
                     db = data;
                     localStorage.setItem('paidos_cloud_backup', JSON.stringify(db));
@@ -154,8 +160,7 @@
                 showLoading(false);
             })
             .catch(err => {
-                console.log("Reintentant connexió directa optimitzada...");
-                // Si el fetch falla pel trànsit, mantenim el que tenim visualitzat salvat i no esborrem res
+                console.log("Error carregant xarxa, usant memòria local de seguretat.");
                 showLoading(false);
             });
         }
@@ -165,21 +170,20 @@
             localStorage.setItem('paidos_cloud_backup', JSON.stringify(db));
             render();
 
-            fetch(CLOUD_URL, {
+            fetch(SAVE_URL, {
                 method: 'POST',
                 mode: 'no-cors',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(db)
             })
-            .then(() => { setTimeout(() => { showLoading(false); closeM(); }, 400); })
+            .then(() => { setTimeout(() => { showLoading(false); closeM(); loadFromCloud(); }, 1500); })
             .catch(() => { showLoading(false); });
         }
 
         function showLoading(show) { document.getElementById('loading-status').style.display = show ? 'block' : 'none'; }
-        function getPrestecsActiusDeLlibre(t) { return db.prestecs ? db.prestecs.filter(p => p.b === t).length : 0; }
         function go(id, el) { document.querySelectorAll('main').forEach(m => m.classList.remove('active')); document.getElementById(id).classList.add('active'); document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active')); el.classList.add('active'); }
         function openM(id) { if(id==='m-l'){filterBooks();filterStudents();} document.getElementById(id).style.display = 'flex'; }
-        function closeM() { document.querySelectorAll('.modal').forEach(m => m.style.display = 'none'); indexEdicio = null; indexEdicioLlibre = null;}
+        function closeM() { document.querySelectorAll('.modal').forEach(m => m.style.display = 'none'); }
 
         function filterBooks() {
             let text = document.getElementById('search-book-input').value.toLowerCase();
@@ -212,7 +216,7 @@
         }
         function removeB(i) { if(confirm("Esborrar llibre?")) { db.llibres.splice(i,1); saveToCloud(); } }
         function removeS(i) { if(confirm("Esborrar alumne?")) { db.alumnes.splice(i,1); saveToCloud(); } }
-        function removeL(i) { db.prestecs.splice(i,1); saveToCloud(); }
+        function removeL(i) { if(confirm("Finalitzar aquest préstec?")) { db.prestecs.splice(i,1); saveToCloud(); } }
 
         function render() {
             document.getElementById('count-b').innerText = db.llibres ? db.llibres.length : 0;
@@ -228,6 +232,13 @@
                 <td><span class="badge badge-ok">${b.q || 1} u.</span></td>
                 <td style="text-align:center"><button class="btn-action btn-action-red" onclick="removeB(${idx})">🗑️</button></td>
             </tr>`).join('');
+            
+            if(db.alumnes) {
+                document.getElementById('t-s').innerHTML = db.alumnes.map((s, idx) => `<tr><td><b>${s.n}</b></td><td>${s.c}</td><td style="text-align:center"><button class="btn-action btn-action-red" onclick="removeS(${idx})">🗑️</button></td></tr>`).join('');
+            }
+            if(db.prestecs) {
+                document.getElementById('t-l').innerHTML = db.prestecs.map((l, idx) => `<tr><td><b>${l.b}</b></td><td>${l.s}</td><td>${l.d}</td><td style="text-align:center"><button class="btn-action btn-action-green" onclick="removeL(${idx})">🔄 Retornar</button></td></tr>`).join('');
+            }
         }
 
         loadFromCloud();
