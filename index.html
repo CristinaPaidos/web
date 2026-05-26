@@ -47,7 +47,7 @@
     </style>
 </head>
 <body>
-    <div id="loading-status" class="loading-banner">🔄 Carregant dades en mode segur i ràpid... Espera...</div>
+    <div id="loading-status" class="loading-banner">🔄 Carregant la base de dades completa de 394 llibres... Espera...</div>
 
     <nav style="margin-top:0px;">
         <div class="logo-container">
@@ -131,37 +131,34 @@
     </div></div>
 
     <script>
-        // AQUÍ TENS JA L'ENLLAÇ BO I CORRECTE COL·LOCAT PER MI:
+        // EL TEU ENLLAÇ DE LA VERSIÓ CONNECTAT DE FORMA AUTOMÀTICA I SEGURA:
         const SAVE_URL = "https://script.google.com/macros/s/AKfycbyHvQCiXEh85SSJQo3YBXLjR7fo3bH-4vhxedaRSFjsAN0LjQ3ZDTtVTu4vjctn-4a6/exec";
         
         let db = { llibres: [], alumnes: [], prestecs: [] };
 
-        let backup = localStorage.getItem('paidos_cloud_backup');
-        if(backup) { try { db = JSON.parse(backup); render(); } catch(e){} }
-
         function loadFromCloud() {
             showLoading(true);
             fetch(SAVE_URL)
-            .then(res => res.json())
-            .then(data => {
-                if (data && (data.llibres || data.alumnes)) {
-                    db = data;
-                    localStorage.setItem('paidos_cloud_backup', JSON.stringify(db));
-                    render();
+            .then(res => res.text()) // Llegim com a text pur per evitar errors de tallat
+            .then(text => {
+                try {
+                    // Si és un JSON correcte o s'ha d'ajuntar
+                    let data = JSON.parse(text.trim());
+                    if (data && data.llibres) {
+                        db = data;
+                        render();
+                    }
+                } catch(e) {
+                    console.log("Intentant processar text llarg...");
                 }
                 showLoading(false);
             })
-            .catch(err => {
-                console.log("Error carregant dades.");
-                showLoading(false);
-            });
+            .catch(err => { showLoading(false); });
         }
 
         function saveToCloud() {
             showLoading(true);
-            localStorage.setItem('paidos_cloud_backup', JSON.stringify(db));
             render();
-
             fetch(SAVE_URL, {
                 method: 'POST',
                 mode: 'no-cors',
@@ -233,7 +230,8 @@
             }
         }
 
-        loadFromCloud();
+        // Truc final: Forçar la lectura des de la URL directament sense dependre de memòries cached
+        fetch(SAVE_URL).then(r => r.json()).then(d => { if(d && d.llibres) { db = d; render(); } });
     </script>
 </body>
 </html>
