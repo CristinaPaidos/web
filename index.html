@@ -47,7 +47,7 @@
     </style>
 </head>
 <body>
-    <div id="loading-status" class="loading-banner">🔄 Carregant dades directes de la biblioteca... Espera un moment...</div>
+    <div id="loading-status" class="loading-banner">🔄 Carregant dades en mode segur i ràpid... Espera...</div>
 
     <nav style="margin-top:0px;">
         <div class="logo-container">
@@ -112,4 +112,129 @@
         <button onclick="closeM()" style="width:100%; margin-top:15px; background:none; border:none; color:#aaa">Tancar</button>
     </div></div>
 
-    <div id="m-s
+    <div id="m-s" class="modal"><div class="modal-content">
+        <h3>Registrar Alumne/a</h3>
+        <input id="s-name" placeholder="Nom i cognoms">
+        <input id="s-class" placeholder="Curs">
+        <button class="btn btn-green" onclick="addS()">Desar Alumne</button>
+        <button onclick="closeM()" style="width:100%; margin-top:15px; background:none; border:none; color:#aaa">Tancar</button>
+    </div></div>
+
+    <div id="m-l" class="modal"><div class="modal-content">
+        <h3>Nou Préstec</h3>
+        <input id="search-book-input" class="search-box" placeholder="Buscar llibre..." oninput="filterBooks()">
+        <select id="l-book"></select>
+        <input id="search-student-input" class="search-box" placeholder="Buscar alumne..." oninput="filterStudents()">
+        <select id="l-student"></select>
+        <button class="btn btn-green" style="margin-top:25px;" onclick="addL()">Confirmar Préstec</button>
+        <button onclick="closeM()" style="width:100%; margin-top:15px; background:none; border:none; color:#aaa">Tancar</button>
+    </div></div>
+
+    <script>
+        // Connexió totalment reparada i directa per evitar el límit de caràcters de Google
+        const SAVE_URL = "https://script.google.com/macros/s/AKfycbzuAYCzdQVGv_CNHR_Cunvb2-1r0xeeVXqsiEtwWjq7279f915YBGy6y1cI6Q1MKGKR/exec";
+        
+        let db = { llibres: [], alumnes: [], prestecs: [] };
+
+        let backup = localStorage.getItem('paidos_cloud_backup');
+        if(backup) { try { db = JSON.parse(backup); render(); } catch(e){} }
+
+        function loadFromCloud() {
+            showLoading(true);
+            // Cridem directament l'enllaç de l'Apps Script sense el CSV tallat
+            fetch(SAVE_URL + "?cachebust=" + new Date().getTime())
+            .then(res => res.json())
+            .then(data => {
+                if (data && (data.llibres || data.alumnes)) {
+                    db = data;
+                    localStorage.setItem('paidos_cloud_backup', JSON.stringify(db));
+                    render();
+                }
+                showLoading(false);
+            })
+            .catch(err => {
+                console.log("Error carregant xarxa, usant memòria local de seguretat.");
+                showLoading(false);
+            });
+        }
+
+        function saveToCloud() {
+            showLoading(true);
+            localStorage.setItem('paidos_cloud_backup', JSON.stringify(db));
+            render();
+
+            fetch(SAVE_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(db)
+            })
+            .then(() => { setTimeout(() => { showLoading(false); closeM(); loadFromCloud(); }, 1500); })
+            .catch(() => { showLoading(false); });
+        }
+
+        function showLoading(show) { document.getElementById('loading-status').style.display = show ? 'block' : 'none'; }
+        function go(id, el) { document.querySelectorAll('main').forEach(m => m.classList.remove('active')); document.getElementById(id).classList.add('active'); document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active')); el.classList.add('active'); }
+        function openM(id) { if(id==='m-l'){filterBooks();filterStudents();} document.getElementById(id).style.display = 'flex'; }
+        function closeM() { document.querySelectorAll('.modal').forEach(m => m.style.display = 'none'); }
+
+        function filterBooks() {
+            let text = document.getElementById('search-book-input').value.toLowerCase();
+            let filtrats = db.llibres.filter(b => b.t.toLowerCase().includes(text));
+            document.getElementById('l-book').innerHTML = filtrats.map(b => `<option value="${b.t}">${b.t}</option>`).join('');
+        }
+        function filterStudents() {
+            let text = document.getElementById('search-student-input').value.toLowerCase();
+            let filtrats = db.alumnes.filter(s => s.n.toLowerCase().includes(text));
+            document.getElementById('l-student').innerHTML = filtrats.map(s => `<option value="${s.n}">${s.n}</option>`).join('');
+        }
+
+        function addB() {
+            let t = document.getElementById('title').value; if(!t) return;
+            if(!db.llibres) db.llibres = [];
+            db.llibres.push({ t: t, a: document.getElementById('author').value || '-', i: document.getElementById('isbn').value || '-', c: document.getElementById('cover').value || '', q: parseInt(document.getElementById('copies').value)||1 });
+            saveToCloud();
+        }
+        function addS() {
+            let n = document.getElementById('s-name').value; if(!n) return;
+            if(!db.alumnes) db.alumnes = [];
+            db.alumnes.push({ n: n, c: document.getElementById('s-class').value || '-' });
+            saveToCloud();
+        }
+        function addL() {
+            let b = document.getElementById('l-book').value; let s = document.getElementById('l-student').value; if(!b||!s) return;
+            if(!db.prestecs) db.prestecs = [];
+            db.prestecs.push({ b: b, s: s, d: new Date().toLocaleDateString() });
+            saveToCloud();
+        }
+        function removeB(i) { if(confirm("Esborrar llibre?")) { db.llibres.splice(i,1); saveToCloud(); } }
+        function removeS(i) { if(confirm("Esborrar alumne?")) { db.alumnes.splice(i,1); saveToCloud(); } }
+        function removeL(i) { if(confirm("Finalitzar aquest préstec?")) { db.prestecs.splice(i,1); saveToCloud(); } }
+
+        function render() {
+            document.getElementById('count-b').innerText = db.llibres ? db.llibres.length : 0;
+            document.getElementById('count-s').innerText = db.alumnes ? db.alumnes.length : 0;
+            document.getElementById('count-l').innerText = db.prestecs ? db.prestecs.length : 0;
+
+            let fText = document.getElementById('search-books-main').value.toLowerCase();
+            let fB = db.llibres ? db.llibres.filter(b => b.t.toLowerCase().includes(fText) || b.a.toLowerCase().includes(fText)) : [];
+
+            document.getElementById('t-b').innerHTML = fB.map((b, idx) => `<tr>
+                <td><img src="${b.c || 'https://via.placeholder.com/50x70?text=S/P'}" class="cover-img"></td>
+                <td><b>${b.t}</b></td><td>${b.a}</td><td><code>${b.i}</code></td>
+                <td><span class="badge badge-ok">${b.q || 1} u.</span></td>
+                <td style="text-align:center"><button class="btn-action btn-action-red" onclick="removeB(${idx})">🗑️</button></td>
+            </tr>`).join('');
+            
+            if(db.alumnes) {
+                document.getElementById('t-s').innerHTML = db.alumnes.map((s, idx) => `<tr><td><b>${s.n}</b></td><td>${s.c}</td><td style="text-align:center"><button class="btn-action btn-action-red" onclick="removeS(${idx})">🗑️</button></td></tr>`).join('');
+            }
+            if(db.prestecs) {
+                document.getElementById('t-l').innerHTML = db.prestecs.map((l, idx) => `<tr><td><b>${l.b}</b></td><td>${l.s}</td><td>${l.d}</td><td style="text-align:center"><button class="btn-action btn-action-green" onclick="removeL(${idx})">🔄 Retornar</button></td></tr>`).join('');
+            }
+        }
+
+        loadFromCloud();
+    </script>
+</body>
+</html>
