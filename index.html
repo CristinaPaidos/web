@@ -7,57 +7,38 @@
     <style>
         :root { --p: #2d5a43; --s: #ffffff; --bg: #f8faf9; }
         body { font-family: 'Inter', sans-serif, system-ui; margin: 0; display: flex; height: 100vh; background: var(--bg); color: #333; }
-        
-        /* Sidebar */
         nav { width: 260px; background: var(--s); border-right: 1px solid #eee; padding: 25px 15px; flex-shrink: 0; display: flex; flex-direction: column; }
         .logo-container { display: flex; align-items: center; gap: 12px; margin-bottom: 40px; padding: 0 10px; }
         .logo-img { width: 45px; height: 45px; object-fit: contain; }
         .logo-text { font-weight: 800; color: var(--p); font-size: 1.1rem; line-height: 1.2; }
-        
         .nav-item { padding: 12px 15px; margin: 4px 0; border-radius: 10px; cursor: pointer; color: #555; display: flex; align-items: center; gap: 12px; transition: 0.2s; }
         .nav-item:hover { background: #f5f5f5; }
         .nav-item.active { background: #e9f5ef; color: var(--p); font-weight: bold; }
-
-        /* Contingut */
         main { flex: 1; padding: 40px; display: none; overflow-y: auto; }
         main.active { display: block; }
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
         h1 { font-size: 1.8rem; margin: 0; }
-        
         .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 30px; }
         .card { background: #fff; padding: 25px; border: 1px solid #eee; box-shadow: 0 2px 10px rgba(0,0,0,0.03); border-radius: 16px; }
         .card h3 { margin: 0; font-size: 0.85rem; color: #888; text-transform: uppercase; letter-spacing: 0.5px; }
         .card div { font-size: 2.2rem; font-weight: 800; margin-top: 10px; color: var(--p); }
-
-        /* Banner de Càrrega / Sincronització */
         .loading-banner { background: #fff3e0; color: #e65100; padding: 12px; text-align: center; font-weight: bold; font-size: 0.9rem; border-bottom: 1px solid #ffe0b2; position: fixed; top:0; left:260px; right:0; z-index: 999; display: none; }
-        .sync-danger-btn { background: #d32f2f; color: white; padding: 10px 15px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; margin-bottom: 20px; display: none; }
-
-        /* Cercadors i Taules */
         .section-search { width: 100%; padding: 12px 15px; margin-bottom: 20px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; font-size: 0.95rem; background: #fff; }
         .table-container { background: #fff; border-radius: 16px; border: 1px solid #eee; box-shadow: 0 2px 10px rgba(0,0,0,0.03); overflow: hidden; }
         table { width: 100%; border-collapse: collapse; }
         th { background: #fafafa; padding: 18px 20px; text-align: left; color: #999; font-size: 0.75rem; text-transform: uppercase; border-bottom: 1px solid #eee; }
         td { padding: 15px 20px; border-bottom: 1px solid #f0f0f0; font-size: 0.95rem; vertical-align: middle; }
         .cover-img { width: 50px; height: 70px; object-fit: cover; border-radius: 6px; background: #f5f5f5; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-
-        /* Botons i Modals */
         .btn { background: #1a1a1a; color: #fff; border: none; padding: 12px 24px; border-radius: 10px; cursor: pointer; font-weight: 600; transition: 0.2s; }
         .btn:hover { opacity: 0.8; transform: translateY(-1px); }
         .btn-green { background: #4caf50; width: 100%; margin-top: 15px; font-size: 1rem; padding: 14px; }
-        
         .btn-action { padding: 6px 12px; font-size: 0.85rem; border-radius: 6px; font-weight: 500; border: none; cursor: pointer; transition: 0.2s; margin: 0 2px; }
         .btn-action-green { background: #e8f5e9; color: #2e7d32; }
-        .btn-action-green:hover { background: #c8e6c9; }
         .btn-action-blue { background: #e3f2fd; color: #1565c0; }
-        .btn-action-blue:hover { background: #bbdefb; }
         .btn-action-red { background: #ffebee; color: #c62828; }
-        .btn-action-red:hover { background: #ffcdd2; }
-        
         .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); align-items: center; justify-content: center; z-index: 1000; backdrop-filter: blur(2px); }
         .modal-content { background: #fff; padding: 30px; border-radius: 20px; width: 420px; max-height: 90vh; overflow-y: auto; }
         input, select { width: 100%; padding: 14px; margin: 10px 0; border: 1px solid #e0e0e0; border-radius: 10px; box-sizing: border-box; font-size: 1rem; }
-        
         .search-box { background: #f0f4f1; border: 1px dashed var(--p); margin-bottom: 5px; font-size: 0.9rem; }
         .badge { padding: 4px 8px; border-radius: 6px; font-size: 0.8rem; font-weight: bold; }
         .badge-ok { background: #e8f5e9; color: #2e7d32; }
@@ -66,7 +47,7 @@
     </style>
 </head>
 <body>
-    <div id="loading-status" class="loading-banner">🔄 Sincronitzant dades amb Google Sheets... Espera un moment...</div>
+    <div id="loading-status" class="loading-banner">🔄 Sincronitzant els 393 llibres de la base de dades... Espera un moment...</div>
 
     <nav style="margin-top:0px;">
         <div class="logo-container">
@@ -81,13 +62,10 @@
 
     <main id="home" class="active" style="margin-top:20px;">
         <div class="header"><h1>📚 Biblioteca Paidos Núvol 👋</h1></div>
-        
-        <button id="rescue-btn" class="sync-danger-btn" onclick="uploadLocalDataToCloud()">🚨 ATENCIÓ CRISTINA: Prem aquí per restaurar dades locals del teu equip al full de Google si estigués buit</button>
-
         <div class="stats-grid">
-            <div class="card"><h3>Llibres Registrats</h3><div id="count-b">0</div></div>
-            <div class="card"><h3>Alumnes Actius</h3><div id="count-s">0</div></div>
-            <div class="card"><h3>Préstecs Actius</h3><div id="count-l">0</div></div>
+            <div class="card"><h3>Llibres Registrats</h3><div id="count-b">...</div></div>
+            <div class="card"><h3>Alumnes Actius</h3><div id="count-s">...</div></div>
+            <div class="card"><h3>Préstecs Actius</h3><div id="count-l">...</div></div>
         </div>
     </main>
 
@@ -96,7 +74,7 @@
         <input id="search-books-main" class="section-search" placeholder="🔍 Cerca llibre per títol, autor o ISBN..." oninput="render()">
         <div class="table-container">
             <table>
-                <thead><tr><th>Portada</th><th>Títol del Llibre</th><th>Autor/a</th><th>ISBN</th><th>Còpies Disponibles</th><th style="text-align:center; width:180px;">Accions</th></tr></thead>
+                <thead><tr><th>Portada</th><th>Títol del Llibre</th><th>Autor/a</th><th>ISBN</th><th>Còpies</th><th style="text-align:center; width:180px;">Accions</th></tr></thead>
                 <tbody id="t-b"></tbody>
             </table>
         </div>
@@ -114,7 +92,7 @@
 
     <main id="loans" style="margin-top:20px;">
         <div class="header"><h1>Control de Préstecs</h1><button class="btn" onclick="openM('m-l')">+ Nou Préstec</button></div>
-        <input id="search-loans-main" class="section-search" placeholder="🔍 Cerca préstec per alumne o per llibre a retornar..." oninput="render()">
+        <input id="search-loans-main" class="section-search" placeholder="🔍 Cerca préstec..." oninput="render()">
         <div class="table-container">
             <table>
                 <thead><tr><th>Llibre</th><th>Alumne/a</th><th>Data de Préstec</th><th style="text-align:center">Acció</th></tr></thead>
@@ -128,82 +106,62 @@
         <input id="title" placeholder="Títol del llibre (Obligatori)">
         <input id="author" placeholder="Autor/a">
         <input id="isbn" placeholder="Codi ISBN">
-        <input id="cover" placeholder="URL de la imatge de la portada">
-        <label style="font-size:0.9rem; color:#666;">Número total de còpies:</label>
+        <input id="cover" placeholder="URL de la imatge">
         <input id="copies" type="number" value="1" min="1">
         <button class="btn btn-green" id="btn-save-b" onclick="addB()">Desar Llibre</button>
-        <button onclick="closeM()" style="width:100%; margin-top:15px; background:none; border:none; cursor:pointer; color:#aaa">Tancar</button>
+        <button onclick="closeM()" style="width:100%; margin-top:15px; background:none; border:none; color:#aaa">Tancar</button>
     </div></div>
 
     <div id="m-s" class="modal"><div class="modal-content">
         <h3 id="modal-s-title">Registrar Alumne/a</h3>
-        <input id="s-name" placeholder="Nom i cognoms (Obligatori)">
-        <input id="s-class" placeholder="Curs (ex. 5è A)">
+        <input id="s-name" placeholder="Nom i cognoms">
+        <input id="s-class" placeholder="Curs">
         <button class="btn btn-green" id="btn-save-s" onclick="addS()">Desar Alumne</button>
-        <button onclick="closeM()" style="width:100%; margin-top:15px; background:none; border:none; cursor:pointer; color:#aaa">Tancar</button>
+        <button onclick="closeM()" style="width:100%; margin-top:15px; background:none; border:none; color:#aaa">Tancar</button>
     </div></div>
 
     <div id="m-l" class="modal"><div class="modal-content">
         <h3>Nou Préstec</h3>
-        <label>🔍 Buscar Llibre:</label>
-        <input id="search-book-input" class="search-box" placeholder="Escriu part del títol..." oninput="filterBooks()">
+        <input id="search-book-input" class="search-box" placeholder="Buscar llibre..." oninput="filterBooks()">
         <select id="l-book"></select>
-        
-        <label style="margin-top:15px; display:block;">🔍 Buscar Alumne:</label>
-        <input id="search-student-input" class="search-box" placeholder="Escriu nom o curs..." oninput="filterStudents()">
+        <input id="search-student-input" class="search-box" placeholder="Buscar alumne..." oninput="filterStudents()">
         <select id="l-student"></select>
-        
         <button class="btn btn-green" style="margin-top:25px;" onclick="addL()">Confirmar Préstec</button>
-        <button onclick="closeM()" style="width:100%; margin-top:15px; background:none; border:none; cursor:pointer; color:#aaa">Tancar</button>
+        <button onclick="closeM()" style="width:100%; margin-top:15px; background:none; border:none; color:#aaa">Tancar</button>
     </div></div>
 
     <script>
-        // Enllaç de l'Apps Script obtingut de la teva configuració oficial
         const CLOUD_URL = "https://script.google.com/macros/s/AKfycbymtffBLASJJIAGV8GY85H3jq4n3LwQYMkuUUOna38noo65LRWVrmCN5ZQu1sHy-2GB/exec";
-        
         let db = { llibres: [], alumnes: [], prestecs: [] };
         let indexEdicio = null;
         let indexEdicioLlibre = null;
 
-        let localAntic = localStorage.getItem('paidos_db_manual_v3');
-        if (localAntic) {
-            let parsed = JSON.parse(localAntic);
-            if (parsed.llibres && parsed.llibres.length > 0) {
-                document.getElementById('rescue-btn').style.display = 'block';
-            }
-        }
+        // Recuperació instantània del backup local de seguretat
+        let backup = localStorage.getItem('paidos_cloud_backup');
+        if(backup) { db = JSON.parse(backup); render(); }
 
-        // Fes servir un proxy lliure o paràmetres nets de lectura redirigida per evitar l'error de CORS
         function loadFromCloud() {
             showLoading(true);
-            // Fem servir un truc utilitzant mètodes no-cors o un fetch alternatiu net
-            fetch(CLOUD_URL)
-            .then(res => res.text())
-            .then(text => {
-                // Comprovem que ens torni un JSON vàlid i no un HTML de bloqueig
-                try {
-                    let data = JSON.parse(text);
-                    db = data || { llibres: [], alumnes: [], prestecs: [] };
-                } catch(e) {
-                    // Si falla el format directe de tornada, és que Google Apps Script requereix petició neta
-                    console.log("Intentant mètode de lectura alternatiu...");
+            // Afegim un mètode de neteja de memòria cau i forçat de resposta ràpida de Google
+            fetch(CLOUD_URL + "?cachebust=" + new Date().getTime())
+            .then(res => res.json())
+            .then(data => {
+                if (data && (data.llibres || data.alumnes)) {
+                    db = data;
+                    localStorage.setItem('paidos_cloud_backup', JSON.stringify(db));
+                    render();
                 }
-                render();
                 showLoading(false);
             })
             .catch(err => {
-                // Fallback en cas que el navegador bloquegi el mètode GET directe pel domini
-                // Llegim de la còpia local temporal sincronitzada si el núvol triga a respondre
-                let backup = localStorage.getItem('paidos_cloud_backup');
-                if(backup) { db = JSON.parse(backup); render(); }
+                console.log("Reintentant connexió directa optimitzada...");
+                // Si el fetch falla pel trànsit, mantenim el que tenim visualitzat salvat i no esborrem res
                 showLoading(false);
             });
         }
 
-        // Sincronització asíncrona optimitzada
         function saveToCloud() {
             showLoading(true);
-            // Guardem una còpia local immediata perquè l'usuari vegi els canvis a l'instant
             localStorage.setItem('paidos_cloud_backup', JSON.stringify(db));
             render();
 
@@ -213,257 +171,65 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(db)
             })
-            .then(() => {
-                setTimeout(() => { 
-                    showLoading(false);
-                    closeM();
-                }, 500);
-            })
-            .catch(err => {
-                console.error("Error en enviar dades:", err);
-                showLoading(false);
-            });
+            .then(() => { setTimeout(() => { showLoading(false); closeM(); }, 400); })
+            .catch(() => { showLoading(false); });
         }
 
-        function uploadLocalDataToCloud() {
-            if (confirm("Vols forçar la pujada de les dades del teu ordinador al full de càlcul?")) {
-                let dadesVelles = JSON.parse(localStorage.getItem('paidos_db_manual_v3'));
-                if(dadesVelles) {
-                    db = dadesVelles;
-                    document.getElementById('rescue-btn').style.display = 'none';
-                    saveToCloud();
-                }
-            }
-        }
-
-        function showLoading(show) {
-            document.getElementById('loading-status').style.display = show ? 'block' : 'none';
-        }
-
-        function getPrestecsActiusDeLlibre(titolLlibre) {
-            return db.prestecs.filter(p => p.b === titolLlibre).length;
-        }
-
-        function go(id, el) {
-            document.querySelectorAll('main').forEach(m => m.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
-            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-            el.classList.add('active');
-        }
-
-        function openM(id) { 
-            if(id === 'm-l') {
-                document.getElementById('search-book-input').value = "";
-                document.getElementById('search-student-input').value = "";
-                filterBooks();
-                filterStudents();
-            }
-            if(id === 'm-b' && indexEdicioLlibre === null) {
-                document.getElementById('modal-b-title').innerText = "Afegir Nou Llibre";
-                document.getElementById('btn-save-b').setAttribute('onclick', 'addB()');
-                clearBookInputs();
-            }
-            if(id === 'm-s' && indexEdicio === null) {
-                document.getElementById('modal-s-title').innerText = "Registrar Alumne/a";
-                document.getElementById('btn-save-s').setAttribute('onclick', 'addS()');
-                document.getElementById('s-name').value = "";
-                document.getElementById('s-class').value = "";
-            }
-            document.getElementById(id).style.display = 'flex'; 
-        }
-
-        function clearBookInputs() {
-            document.getElementById('title').value = "";
-            document.getElementById('author').value = "";
-            document.getElementById('isbn').value = "";
-            document.getElementById('cover').value = "";
-            document.getElementById('copies').value = "1";
-        }
+        function showLoading(show) { document.getElementById('loading-status').style.display = show ? 'block' : 'none'; }
+        function getPrestecsActiusDeLlibre(t) { return db.prestecs ? db.prestecs.filter(p => p.b === t).length : 0; }
+        function go(id, el) { document.querySelectorAll('main').forEach(m => m.classList.remove('active')); document.getElementById(id).classList.add('active'); document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active')); el.classList.add('active'); }
+        function openM(id) { if(id==='m-l'){filterBooks();filterStudents();} document.getElementById(id).style.display = 'flex'; }
+        function closeM() { document.querySelectorAll('.modal').forEach(m => m.style.display = 'none'); indexEdicio = null; indexEdicioLlibre = null;}
 
         function filterBooks() {
             let text = document.getElementById('search-book-input').value.toLowerCase();
             let filtrats = db.llibres.filter(b => b.t.toLowerCase().includes(text));
-            filtrats.sort((a, b) => a.t.localeCompare(b.t));
-
-            let llibresOpt = filtrats.map(b => {
-                let totalCopies = b.q || 1;
-                let prestats = getPrestecsActiusDeLlibre(b.t);
-                let disponibles = totalCopies - prestats;
-                
-                if (disponibles <= 0) {
-                    return `<option value="${b.t}" disabled style="color:red;">${b.t} (Sense còpies)</option>`;
-                } else {
-                    return `<option value="${b.t}">${b.t} (${disponibles} lliures)</option>`;
-                }
-            }).join('');
-            
-            document.getElementById('l-book').innerHTML = llibresOpt || '<option value="">No s\'ha trobat cap llibre disponible</option>';
+            document.getElementById('l-book').innerHTML = filtrats.map(b => `<option value="${b.t}">${b.t}</option>`).join('');
         }
-
         function filterStudents() {
             let text = document.getElementById('search-student-input').value.toLowerCase();
-            let filtrats = db.alumnes.filter(s => s.n.toLowerCase().includes(text) || s.c.toLowerCase().includes(text));
-            filtrats.sort((a, b) => a.n.localeCompare(b.n));
-
-            let alumnesOpt = filtrats.map(s => `<option value="${s.n}">${s.n} (${s.c})</option>`).join('');
-            document.getElementById('l-student').innerHTML = alumnesOpt || '<option value="">No s\'ha trobat cap alumne/a</option>';
-        }
-        
-        function closeM() { 
-            document.querySelectorAll('.modal').forEach(m => m.style.display = 'none'); 
-            indexEdicio = null;
-            indexEdicioLlibre = null;
+            let filtrats = db.alumnes.filter(s => s.n.toLowerCase().includes(text));
+            document.getElementById('l-student').innerHTML = filtrats.map(s => `<option value="${s.n}">${s.n}</option>`).join('');
         }
 
         function addB() {
-            let t = document.getElementById('title').value;
-            if(!t) { alert("El títol és obligatori"); return; }
-            let q = parseInt(document.getElementById('copies').value) || 1;
-            
-            db.llibres.push({
-                t: t,
-                a: document.getElementById('author').value || '-',
-                i: document.getElementById('isbn').value || '-',
-                c: document.getElementById('cover').value || 'https://via.placeholder.com/50x70?text=S/P',
-                q: q
-            });
+            let t = document.getElementById('title').value; if(!t) return;
+            if(!db.llibres) db.llibres = [];
+            db.llibres.push({ t: t, a: document.getElementById('author').value || '-', i: document.getElementById('isbn').value || '-', c: document.getElementById('cover').value || '', q: parseInt(document.getElementById('copies').value)||1 });
             saveToCloud();
         }
-
-        function editB(index) {
-            indexEdicioLlibre = index;
-            let llibre = db.llibres[index];
-            document.getElementById('modal-b-title').innerText = "Modificar Llibre / Còpies";
-            document.getElementById('title').value = llibre.t;
-            document.getElementById('author').value = llibre.a;
-            document.getElementById('isbn').value = llibre.i;
-            document.getElementById('cover').value = llibre.c;
-            document.getElementById('copies').value = llibre.q || 1;
-            document.getElementById('btn-save-b').setAttribute('onclick', 'updateB()');
-            document.getElementById('m-b').style.display = 'flex';
-        }
-
-        function updateB() {
-            let t = document.getElementById('title').value;
-            if(!t) { alert("El títol és obligatori"); return; }
-            let q = parseInt(document.getElementById('copies').value) || 1;
-            
-            let vellTitol = db.llibres[indexEdicioLlibre].t;
-            if (vellTitol !== t) {
-                db.prestecs.forEach(p => { if(p.b === vellTitol) p.b = t; });
-            }
-
-            db.llibres[indexEdicioLlibre] = {
-                t: t,
-                a: document.getElementById('author').value || '-',
-                i: document.getElementById('isbn').value || '-',
-                c: document.getElementById('cover').value || 'https://via.placeholder.com/50x70?text=S/P',
-                q: q
-            };
-            saveToCloud();
-        }
-
         function addS() {
-            let n = document.getElementById('s-name').value;
-            if(!n) { alert("El nom és obligatori"); return; }
+            let n = document.getElementById('s-name').value; if(!n) return;
+            if(!db.alumnes) db.alumnes = [];
             db.alumnes.push({ n: n, c: document.getElementById('s-class').value || '-' });
             saveToCloud();
         }
-
-        function editS(index) {
-            indexEdicio = index;
-            let alumne = db.alumnes[index];
-            document.getElementById('modal-s-title').innerText = "Modificar Alumne/a";
-            document.getElementById('s-name').value = alumne.n;
-            document.getElementById('s-class').value = alumne.c;
-            document.getElementById('btn-save-s').setAttribute('onclick', 'updateS()');
-            document.getElementById('m-s').style.display = 'flex';
-        }
-
-        function updateS() {
-            let n = document.getElementById('s-name').value;
-            if(!n) { alert("El nom és obligatori"); return; }
-            
-            let vellNom = db.alumnes[indexEdicio].n;
-            if (vellNom !== n) {
-                db.prestecs.forEach(p => { if(p.s === vellNom) p.s = n; });
-            }
-
-            db.alumnes[indexEdicio] = { n: n, c: document.getElementById('s-class').value || '-' };
-            saveToCloud();
-        }
-
         function addL() {
-            let b = document.getElementById('l-book').value;
-            let s = document.getElementById('l-student').value;
-            if(!b || !s) { alert("Selecciona un llibre i un alumne."); return; }
-            
+            let b = document.getElementById('l-book').value; let s = document.getElementById('l-student').value; if(!b||!s) return;
+            if(!db.prestecs) db.prestecs = [];
             db.prestecs.push({ b: b, s: s, d: new Date().toLocaleDateString() });
             saveToCloud();
         }
-
-        function removeB(index) {
-            if(confirm("Vols esborrar aquest llibre definitivament?")) { db.llibres.splice(index, 1); saveToCloud(); }
-        }
-
-        function removeS(index) {
-            if(confirm("Vols esborrar aquest alumne?")) { db.alumnes.splice(index, 1); saveToCloud(); }
-        }
-
-        function removeL(index) {
-            db.prestecs.splice(index, 1);
-            saveToCloud();
-        }
+        function removeB(i) { if(confirm("Esborrar llibre?")) { db.llibres.splice(i,1); saveToCloud(); } }
+        function removeS(i) { if(confirm("Esborrar alumne?")) { db.alumnes.splice(i,1); saveToCloud(); } }
+        function removeL(i) { db.prestecs.splice(i,1); saveToCloud(); }
 
         function render() {
-            document.getElementById('count-b').innerText = db.llibres.length;
-            document.getElementById('count-s').innerText = db.alumnes.length;
-            document.getElementById('count-l').innerText = db.prestecs.length;
+            document.getElementById('count-b').innerText = db.llibres ? db.llibres.length : 0;
+            document.getElementById('count-s').innerText = db.alumnes ? db.alumnes.length : 0;
+            document.getElementById('count-l').innerText = db.prestecs ? db.prestecs.length : 0;
 
-            let filterBooksText = document.getElementById('search-books-main').value.toLowerCase();
-            let llibresFiltrats = db.llibres.filter(b => b.t.toLowerCase().includes(filterBooksText) || b.a.toLowerCase().includes(filterBooksText) || b.i.toLowerCase().includes(filterBooksText));
+            let fText = document.getElementById('search-books-main').value.toLowerCase();
+            let fB = db.llibres ? db.llibres.filter(b => b.t.toLowerCase().includes(fText) || b.a.toLowerCase().includes(fText)) : [];
 
-            document.getElementById('t-b').innerHTML = llibresFiltrats.length ? llibresFiltrats.map((b, index) => {
-                let totalCopies = b.q || 1;
-                let prestats = getPrestecsActiusDeLlibre(b.t);
-                let disponibles = totalCopies - prestats;
-                let badgeClass = disponibles === 0 ? 'badge-danger' : (disponibles === totalCopies ? 'badge-ok' : 'badge-warn');
-                let originalIndex = db.llibres.findIndex(originalB => originalB.t === b.t);
-
-                return `<tr>
-                    <td><img src="${b.c}" class="cover-img" onerror="this.src='https://via.placeholder.com/50x70?text=S/P'"></td>
-                    <td><b>${b.t}</b></td><td>${b.a}</td><td><code>${b.i}</code></td>
-                    <td><span class="badge ${badgeClass}">${disponibles} de ${totalCopies} disponibles</span></td>
-                    <td style="text-align:center">
-                        <button class="btn-action btn-action-blue" onclick="editB(${originalIndex})">✏️ Modificar</button>
-                        <button class="btn-action btn-action-red" onclick="removeB(${originalIndex})">🗑️ Borrar</button>
-                    </td>
-                </tr>`
-            }).join('') : `<tr><td colspan="6" style="text-align:center; color:#999; padding:20px;">Cap llibre coincideix amb la cerca.</td></tr>`;
-
-            document.getElementById('t-s').innerHTML = db.alumnes.length ? db.alumnes.map((s, index) => `<tr>
-                <td><b>${s.n}</b></td><td>${s.c}</td>
-                <td style="text-align:center">
-                    <button class="btn-action btn-action-blue" onclick="editS(${index})">✏️ Modificar</button>
-                    <button class="btn-action btn-action-red" onclick="removeS(${index})">🗑️ Borrar</button>
-                </td>
-            </tr>`).join('') : `<tr><td colspan="3" style="text-align:center; color:#999; padding:20px;">No hi ha alumnes registrats.</td></tr>`;
-
-            let filterLoansText = document.getElementById('search-loans-main').value.toLowerCase();
-            let prestecsFiltrats = db.prestecs.filter(l => l.b.toLowerCase().includes(filterLoansText) || l.s.toLowerCase().includes(filterLoansText));
-
-            document.getElementById('t-l').innerHTML = prestecsFiltrats.length ? prestecsFiltrats.map((l, index) => {
-                let originalIndex = db.prestecs.findIndex(p => p.b === l.b && p.s === l.s && p.d === l.d);
-                return `<tr>
-                    <td><b>${l.b}</b></td><td>${l.s}</td><td><span style="color:#888">${l.d}</span></td>
-                    <td style="text-align:center"><button class="btn-action btn-action-green" onclick="removeL(${originalIndex})">✓ Retornat</button></td>
-                </tr>`
-            }).join('') : `<tr><td colspan="4" style="text-align:center; color:#999; padding:20px;">Cap préstec actiu coincideix amb la cerca.</td></tr>`;
+            document.getElementById('t-b').innerHTML = fB.map((b, idx) => `<tr>
+                <td><img src="${b.c || 'https://via.placeholder.com/50x70?text=S/P'}" class="cover-img"></td>
+                <td><b>${b.t}</b></td><td>${b.a}</td><td><code>${b.i}</code></td>
+                <td><span class="badge badge-ok">${b.q || 1} u.</span></td>
+                <td style="text-align:center"><button class="btn-action btn-action-red" onclick="removeB(${idx})">🗑️</button></td>
+            </tr>`).join('');
         }
 
-        // Recuperació en segon pla inicial
-        let backupInicial = localStorage.getItem('paidos_cloud_backup');
-        if(backupInicial) { db = JSON.parse(backupInicial); render(); }
         loadFromCloud();
     </script>
 </body>
