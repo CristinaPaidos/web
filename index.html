@@ -150,7 +150,7 @@
 
         function saveToCloud() {
             showLoading(true);
-            render(); // Actualitza visualment a l'acte!
+            render();
             fetch(SAVE_URL, {
                 method: 'POST',
                 mode: 'no-cors',
