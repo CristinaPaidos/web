@@ -150,14 +150,14 @@
 
         function saveToCloud() {
             showLoading(true);
-            render();
+            render(); // Actualitza visualment a l'acte!
             fetch(SAVE_URL, {
                 method: 'POST',
                 mode: 'no-cors',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(db)
             })
-            .then(() => { setTimeout(() => { showLoading(false); closeM(); loadFromCloud(); }, 1500); })
+            .then(() => { setTimeout(() => { showLoading(false); closeM(); }, 500); })
             .catch(() => { showLoading(false); });
         }
 
@@ -192,21 +192,14 @@
             document.getElementById('l-student').innerHTML = filtrats.map(s => `<option value="${s.n}">${s.n}</option>`).join('');
         }
 
-        // SALVAR LLIBRE (AFEGIR O EDITAR)
         function saveB() {
             let t = document.getElementById('title').value; if(!t) return;
             let item = { t: t, a: document.getElementById('author').value || '-', i: document.getElementById('isbn').value || '-', c: document.getElementById('cover').value || '', q: parseInt(document.getElementById('copies').value)||1 };
-            
             if(!db.llibres) db.llibres = [];
-            if(editIdxBook === -1) {
-                db.llibres.push(item);
-            } else {
-                db.llibres[editIdxBook] = item;
-            }
+            if(editIdxBook === -1) { db.llibres.push(item); } else { db.llibres[editIdxBook] = item; }
             saveToCloud();
         }
 
-        // RELLENAR MODAL PER EDITAR LLIBRE
         function editB(i) {
             editIdxBook = i;
             let b = db.llibres[i];
@@ -219,21 +212,14 @@
             openM('m-b');
         }
 
-        // SALVAR ALUMNE (AFEGIR O EDITAR)
         function saveS() {
             let n = document.getElementById('s-name').value; if(!n) return;
             let item = { n: n, c: document.getElementById('s-class').value || '-' };
-            
             if(!db.alumnes) db.alumnes = [];
-            if(editIdxStudent === -1) {
-                db.alumnes.push(item);
-            } else {
-                db.alumnes[editIdxStudent] = item;
-            }
+            if(editIdxStudent === -1) { db.alumnes.push(item); } else { db.alumnes[editIdxStudent] = item; }
             saveToCloud();
         }
 
-        // RELLENAR MODAL PER EDITAR ALUMNE
         function editS(i) {
             editIdxStudent = i;
             let s = db.alumnes[i];
@@ -261,7 +247,6 @@
 
             let fText = document.getElementById('search-books-main').value.toLowerCase();
             
-            // Render de llibres amb botó d'editar (✏️) i esborrar (🗑️)
             if(db.llibres) {
                 let htmlB = "";
                 db.llibres.forEach((b, idx) => {
@@ -280,6 +265,23 @@
                 document.getElementById('t-b').innerHTML = htmlB;
             }
             
-            // Render d'alumnes amb botó d'editar (✏️) i esborrar (🗑️)
             if(db.alumnes) {
-                document.getElementById('t-s').innerHTML = db.alumnes.map((s
+                document.getElementById('t-s').innerHTML = db.alumnes.map((s, idx) => `<tr>
+                    <td><b>${s.n}</b></td>
+                    <td>${s.c}</td>
+                    <td style="text-align:center">
+                        <button class="btn-action btn-action-blue" onclick="editS(${idx})">✏️</button>
+                        <button class="btn-action btn-action-red" onclick="removeS(${idx})">🗑️</button>
+                    </td>
+                </tr>`).join('');
+            }
+            
+            if(db.prestecs) {
+                document.getElementById('t-l').innerHTML = db.prestecs.map((l, idx) => `<tr><td><b>${l.b}</b></td><td>${l.s}</td><td>${l.d}</td><td style="text-align:center"><button class="btn-action btn-action-green" onclick="removeL(${idx})">🔄 Retornar</button></td></tr>`).join('');
+            }
+        }
+
+        loadFromCloud();
+    </script>
+</body>
+</html>
