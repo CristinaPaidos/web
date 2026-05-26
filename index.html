@@ -47,7 +47,7 @@
     </style>
 </head>
 <body>
-    <div id="loading-status" class="loading-banner">🔄 Carregant la base de dades completa de 394 llibres... Espera...</div>
+    <div id="loading-status" class="loading-banner">🔄 Carregant llibres...</div>
 
     <nav style="margin-top:0px;">
         <div class="logo-container">
@@ -131,29 +131,21 @@
     </div></div>
 
     <script>
-        // EL TEU ENLLAÇ DE LA VERSIÓ CONNECTAT DE FORMA AUTOMÀTICA I SEGURA:
         const SAVE_URL = "https://script.google.com/macros/s/AKfycbyHvQCiXEh85SSJQo3YBXLjR7fo3bH-4vhxedaRSFjsAN0LjQ3ZDTtVTu4vjctn-4a6/exec";
-        
         let db = { llibres: [], alumnes: [], prestecs: [] };
 
         function loadFromCloud() {
             showLoading(true);
             fetch(SAVE_URL)
-            .then(res => res.text()) // Llegim com a text pur per evitar errors de tallat
-            .then(text => {
-                try {
-                    // Si és un JSON correcte o s'ha d'ajuntar
-                    let data = JSON.parse(text.trim());
-                    if (data && data.llibres) {
-                        db = data;
-                        render();
-                    }
-                } catch(e) {
-                    console.log("Intentant processar text llarg...");
+            .then(res => res.json())
+            .then(data => {
+                if (data && data.llibres) {
+                    db = data;
+                    render();
                 }
                 showLoading(false);
             })
-            .catch(err => { showLoading(false); });
+            .catch(() => { showLoading(false); });
         }
 
         function saveToCloud() {
@@ -230,8 +222,8 @@
             }
         }
 
-        // Truc final: Forçar la lectura des de la URL directament sense dependre de memòries cached
-        fetch(SAVE_URL).then(r => r.json()).then(d => { if(d && d.llibres) { db = d; render(); } });
+        // Càrrega neta de l'enllaç de Google des del primer segon
+        loadFromCloud();
     </script>
 </body>
 </html>
