@@ -131,8 +131,8 @@
     </div></div>
 
     <script>
-        // Enllaç actualitzat correctament al nou exec de dades completes
-        const SAVE_URL = "https://script.google.com/macros/s/AKfycbx1X9lIz56scSfGlgpetu17IZOm2BEQDUGgsnJ4R9eWqOLzqN5Z_T_WRZpZMwftuKW4/exec";
+        // AQUÍ TENS JA L'ENLLAÇ BO I CORRECTE COL·LOCAT PER MI:
+        const SAVE_URL = "https://script.google.com/macros/s/AKfycbyHvQCiXEh85SSJQo3YBXLjR7fo3bH-4vhxedaRSFjsAN0LjQ3ZDTtVTu4vjctn-4a6/exec";
         
         let db = { llibres: [], alumnes: [], prestecs: [] };
 
@@ -141,7 +141,7 @@
 
         function loadFromCloud() {
             showLoading(true);
-            fetch(SAVE_URL + "?cachebust=" + new Date().getTime())
+            fetch(SAVE_URL)
             .then(res => res.json())
             .then(data => {
                 if (data && (data.llibres || data.alumnes)) {
@@ -152,7 +152,7 @@
                 showLoading(false);
             })
             .catch(err => {
-                console.log("Error carregant dades de la xarxa.");
+                console.log("Error carregant dades.");
                 showLoading(false);
             });
         }
