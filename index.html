@@ -42,8 +42,6 @@
         .search-box { background: #f0f4f1; border: 1px dashed var(--p); margin-bottom: 5px; font-size: 0.9rem; }
         .badge { padding: 4px 8px; border-radius: 6px; font-size: 0.8rem; font-weight: bold; }
         .badge-ok { background: #e8f5e9; color: #2e7d32; }
-        .badge-warn { background: #fff3e0; color: #e65100; }
-        .badge-danger { background: #ffebee; color: #c62828; }
     </style>
 </head>
 <body>
@@ -102,21 +100,21 @@
     </main>
 
     <div id="m-b" class="modal"><div class="modal-content">
-        <h3>Afegir Nou Llibre</h3>
+        <h3 id="modal-book-title">Afegir Nou Llibre</h3>
         <input id="title" placeholder="Títol del llibre (Obligatori)">
         <input id="author" placeholder="Autor/a">
         <input id="isbn" placeholder="Codi ISBN">
         <input id="cover" placeholder="URL de la imatge">
         <input id="copies" type="number" value="1" min="1">
-        <button class="btn btn-green" onclick="addB()">Desar Llibre</button>
+        <button class="btn btn-green" onclick="saveB()">Desar Llibre</button>
         <button onclick="closeM()" style="width:100%; margin-top:15px; background:none; border:none; color:#aaa">Tancar</button>
     </div></div>
 
     <div id="m-s" class="modal"><div class="modal-content">
-        <h3>Registrar Alumne/a</h3>
+        <h3 id="modal-student-title">Registrar Alumne/a</h3>
         <input id="s-name" placeholder="Nom i cognoms">
         <input id="s-class" placeholder="Curs">
-        <button class="btn btn-green" onclick="addS()">Desar Alumne</button>
+        <button class="btn btn-green" onclick="saveS()">Desar Alumne</button>
         <button onclick="closeM()" style="width:100%; margin-top:15px; background:none; border:none; color:#aaa">Tancar</button>
     </div></div>
 
@@ -133,6 +131,8 @@
     <script>
         const SAVE_URL = "https://script.google.com/macros/s/AKfycbyHvQCiXEh85SSJQo3YBXLjR7fo3bH-4vhxedaRSFjsAN0LjQ3ZDTtVTu4vjctn-4a6/exec";
         let db = { llibres: [], alumnes: [], prestecs: [] };
+        let editIdxBook = -1;
+        let editIdxStudent = -1;
 
         function loadFromCloud() {
             showLoading(true);
@@ -163,8 +163,23 @@
 
         function showLoading(show) { document.getElementById('loading-status').style.display = show ? 'block' : 'none'; }
         function go(id, el) { document.querySelectorAll('main').forEach(m => m.classList.remove('active')); document.getElementById(id).classList.add('active'); document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active')); el.classList.add('active'); }
-        function openM(id) { if(id==='m-l'){filterBooks();filterStudents();} document.getElementById(id).style.display = 'flex'; }
-        function closeM() { document.querySelectorAll('.modal').forEach(m => m.style.display = 'none'); }
+        
+        function openM(id) { 
+            if(id==='m-l'){filterBooks();filterStudents();} 
+            if(id==='m-b' && editIdxBook === -1){
+                document.getElementById('modal-book-title').innerText = "Afegir Nou Llibre";
+                document.getElementById('title').value = ''; document.getElementById('author').value = '';
+                document.getElementById('isbn').value = ''; document.getElementById('cover').value = '';
+                document.getElementById('copies').value = '1';
+            }
+            if(id==='m-s' && editIdxStudent === -1){
+                document.getElementById('modal-student-title').innerText = "Registrar Alumne/a";
+                document.getElementById('s-name').value = ''; document.getElementById('s-class').value = '';
+            }
+            document.getElementById(id).style.display = 'flex'; 
+        }
+        
+        function closeM() { document.querySelectorAll('.modal').forEach(m => m.style.display = 'none'); editIdxBook = -1; editIdxStudent = -1; }
 
         function filterBooks() {
             let text = document.getElementById('search-book-input').value.toLowerCase();
@@ -177,24 +192,64 @@
             document.getElementById('l-student').innerHTML = filtrats.map(s => `<option value="${s.n}">${s.n}</option>`).join('');
         }
 
-        function addB() {
+        // SALVAR LLIBRE (AFEGIR O EDITAR)
+        function saveB() {
             let t = document.getElementById('title').value; if(!t) return;
+            let item = { t: t, a: document.getElementById('author').value || '-', i: document.getElementById('isbn').value || '-', c: document.getElementById('cover').value || '', q: parseInt(document.getElementById('copies').value)||1 };
+            
             if(!db.llibres) db.llibres = [];
-            db.llibres.push({ t: t, a: document.getElementById('author').value || '-', i: document.getElementById('isbn').value || '-', c: document.getElementById('cover').value || '', q: parseInt(document.getElementById('copies').value)||1 });
+            if(editIdxBook === -1) {
+                db.llibres.push(item);
+            } else {
+                db.llibres[editIdxBook] = item;
+            }
             saveToCloud();
         }
-        function addS() {
+
+        // RELLENAR MODAL PER EDITAR LLIBRE
+        function editB(i) {
+            editIdxBook = i;
+            let b = db.llibres[i];
+            document.getElementById('modal-book-title').innerText = "Modificar Llibre";
+            document.getElementById('title').value = b.t;
+            document.getElementById('author').value = b.a;
+            document.getElementById('isbn').value = b.i;
+            document.getElementById('cover').value = b.c;
+            document.getElementById('copies').value = b.q || 1;
+            openM('m-b');
+        }
+
+        // SALVAR ALUMNE (AFEGIR O EDITAR)
+        function saveS() {
             let n = document.getElementById('s-name').value; if(!n) return;
+            let item = { n: n, c: document.getElementById('s-class').value || '-' };
+            
             if(!db.alumnes) db.alumnes = [];
-            db.alumnes.push({ n: n, c: document.getElementById('s-class').value || '-' });
+            if(editIdxStudent === -1) {
+                db.alumnes.push(item);
+            } else {
+                db.alumnes[editIdxStudent] = item;
+            }
             saveToCloud();
         }
+
+        // RELLENAR MODAL PER EDITAR ALUMNE
+        function editS(i) {
+            editIdxStudent = i;
+            let s = db.alumnes[i];
+            document.getElementById('modal-student-title').innerText = "Modificar Alumne";
+            document.getElementById('s-name').value = s.n;
+            document.getElementById('s-class').value = s.c;
+            openM('m-s');
+        }
+
         function addL() {
             let b = document.getElementById('l-book').value; let s = document.getElementById('l-student').value; if(!b||!s) return;
             if(!db.prestecs) db.prestecs = [];
             db.prestecs.push({ b: b, s: s, d: new Date().toLocaleDateString() });
             saveToCloud();
         }
+
         function removeB(i) { if(confirm("Esborrar llibre?")) { db.llibres.splice(i,1); saveToCloud(); } }
         function removeS(i) { if(confirm("Esborrar alumne?")) { db.alumnes.splice(i,1); saveToCloud(); } }
         function removeL(i) { if(confirm("Finalitzar aquest préstec?")) { db.prestecs.splice(i,1); saveToCloud(); } }
@@ -205,25 +260,26 @@
             document.getElementById('count-l').innerText = db.prestecs ? db.prestecs.length : 0;
 
             let fText = document.getElementById('search-books-main').value.toLowerCase();
-            let fB = db.llibres ? db.llibres.filter(b => b.t.toLowerCase().includes(fText) || b.a.toLowerCase().includes(fText)) : [];
-
-            document.getElementById('t-b').innerHTML = fB.map((b, idx) => `<tr>
-                <td><img src="${b.c || 'https://via.placeholder.com/50x70?text=S/P'}" class="cover-img"></td>
-                <td><b>${b.t}</b></td><td>${b.a}</td><td><code>${b.i}</code></td>
-                <td><span class="badge badge-ok">${b.q || 1} u.</span></td>
-                <td style="text-align:center"><button class="btn-action btn-action-red" onclick="removeB(${idx})">🗑️</button></td>
-            </tr>`).join('');
             
+            // Render de llibres amb botó d'editar (✏️) i esborrar (🗑️)
+            if(db.llibres) {
+                let htmlB = "";
+                db.llibres.forEach((b, idx) => {
+                    if(b.t.toLowerCase().includes(fText) || b.a.toLowerCase().includes(fText)) {
+                        htmlB += `<tr>
+                            <td><img src="${b.c || 'https://via.placeholder.com/50x70?text=S/P'}" class="cover-img"></td>
+                            <td><b>${b.t}</b></td><td>${b.a}</td><td><code>${b.i}</code></td>
+                            <td><span class="badge badge-ok">${b.q || 1} u.</span></td>
+                            <td style="text-align:center">
+                                <button class="btn-action btn-action-blue" onclick="editB(${idx})">✏️</button>
+                                <button class="btn-action btn-action-red" onclick="removeB(${idx})">🗑️</button>
+                            </td>
+                        </tr>`;
+                    }
+                });
+                document.getElementById('t-b').innerHTML = htmlB;
+            }
+            
+            // Render d'alumnes amb botó d'editar (✏️) i esborrar (🗑️)
             if(db.alumnes) {
-                document.getElementById('t-s').innerHTML = db.alumnes.map((s, idx) => `<tr><td><b>${s.n}</b></td><td>${s.c}</td><td style="text-align:center"><button class="btn-action btn-action-red" onclick="removeS(${idx})">🗑️</button></td></tr>`).join('');
-            }
-            if(db.prestecs) {
-                document.getElementById('t-l').innerHTML = db.prestecs.map((l, idx) => `<tr><td><b>${l.b}</b></td><td>${l.s}</td><td>${l.d}</td><td style="text-align:center"><button class="btn-action btn-action-green" onclick="removeL(${idx})">🔄 Retornar</button></td></tr>`).join('');
-            }
-        }
-
-        // Càrrega neta de l'enllaç de Google des del primer segon
-        loadFromCloud();
-    </script>
-</body>
-</html>
+                document.getElementById('t-s').innerHTML = db.alumnes.map((s
