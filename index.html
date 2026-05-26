@@ -131,9 +131,9 @@
     </div></div>
 
     <script>
-        // Connexió alternativa directa a les cel·les per evitar el límit de memòria de Google Apps Script
+        // Connexió reparada i actualitzada
         const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/1EMby2eb2UViewL3-TV7EjEgLMsXaMUUbjulFCKh1-_WI/pub?gid=0&output=csv";
-        const SAVE_URL = "https://script.google.com/macros/s/AKfycbymtffBLASJJIAGV8GY85H3jq4n3LwQYMkuUUOna38noo65LRWVrmCN5ZQu1sHy-2GB/exec";
+        const SAVE_URL = "https://script.google.com/macros/s/AKfycbzuAYCzdQVGv_CNHR_Cunvb2-1r0xeeVXqsiEtwWjq7279f915YBGy6y1cI6Q1MKGKR/exec";
         
         let db = { llibres: [], alumnes: [], prestecs: [] };
 
@@ -142,11 +142,9 @@
 
         function loadFromCloud() {
             showLoading(true);
-            // Llegim directament el fitxer publicat a la web (sense passar per l'embut d'Apps Script)
             fetch(SHEET_CSV_URL + "&cachebust=" + new Date().getTime())
             .then(res => res.text())
             .then(csvText => {
-                // El contingut real és a la primera cel·la, netegem cometes de format CSV si cal
                 let cleanJson = csvText.trim();
                 if(cleanJson.startsWith('"') && cleanJson.endsWith('"')) {
                     cleanJson = cleanJson.slice(1, -1).replace(/""/g, '"');
